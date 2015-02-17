@@ -13,11 +13,27 @@ background = new BackgroundLayer
 	backgroundColor: "#fff"
 
 staticLayer = new Layer
-	width:640
-	height:920
-	image:"images/grid.jpg"
+	width: 640
+	height: 920
+	image: "images/grid.jpg"
 	
 headerLayer = new Layer
 	width: DEVICE_WIDTH
 	height: HEADER
-	color: "#40a6f1"
+	backgroundColor: "#40a6f1"
+	opacity: .8
+	
+gridLayers = {}
+
+for row in [1..4]
+	for column in ['A', 'B']
+		layerName = column + row
+		xPosition = if column == 'A' then MARGIN else MARGIN + IMAGE_WIDTH + GUTTER
+		yPosition = (HEADER + MARGIN) + ((row - 1) * (IMAGE_HEIGHT + GUTTER))
+		gridLayers[layerName] = new Layer
+			width: IMAGE_WIDTH
+			height: IMAGE_HEIGHT
+			x: xPosition
+			y: yPosition
+			backgroundColor: "#df0077"
+			opacity: .8
