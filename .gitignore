@@ -1,0 +1,4 @@
+*.DS_store
+.temp.html
+framer/backup.coffee
+framer/app.manifest
