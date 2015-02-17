@@ -1,6 +1,14 @@
 # UX Engineer, Design - Prototyping Exercise
 # Zach Heineman, 2015
 
+DEVICE_WIDTH = 640
+DEVICE_HEIGHT = 920
+HEADER = 120
+MARGIN = 30
+GUTTER = 16
+IMAGE_WIDTH = 282
+IMAGE_HEIGHT = 206
+
 background = new BackgroundLayer
 	backgroundColor: "#fff"
 
