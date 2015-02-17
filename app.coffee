@@ -16,3 +16,8 @@ staticLayer = new Layer
 	width:640
 	height:920
 	image:"images/grid.jpg"
+	
+headerLayer = new Layer
+	width: DEVICE_WIDTH
+	height: HEADER
+	color: "#40a6f1"
