@@ -2,3 +2,5 @@
 .temp.html
 framer/backup.coffee
 framer/app.manifest
+framer/config.json
+framer/framer.generated.js
