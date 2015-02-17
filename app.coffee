@@ -12,7 +12,7 @@ IMAGE_HEIGHT = 206
 background = new BackgroundLayer
 	backgroundColor: "#fff"
 
-staticLayer = new Layer
+staticGridLayer = new Layer
 	width: 640
 	height: 920
 	image: "images/grid.jpg"
@@ -37,3 +37,9 @@ for row in [1..4]
 			y: yPosition
 			backgroundColor: "#df0077"
 			opacity: .8
+			
+staticDetailLayer = new Layer
+	width: 640
+	height: 920
+	image: "images/detail.jpg"
+	opacity: 0
