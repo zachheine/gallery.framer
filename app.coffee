@@ -19,6 +19,7 @@ DETAIL_IMAGE_HEIGHT_RATIO = 428 / 640 # Original detail dimensions
 DETAIL_IMAGE_HEIGHT = DEVICE_WIDTH * DETAIL_IMAGE_HEIGHT_RATIO
 DETAIL_IMAGE_Y_POSITION = (DEVICE_HEIGHT * .5) - (DETAIL_IMAGE_HEIGHT / 2)
 COLOR_BLUE = "#40a6f1"; COLOR_MAGENTA = "#df0077"
+SHOW_IMAGES = true
 
 new BackgroundLayer backgroundColor: "#fff"
 
@@ -36,8 +37,8 @@ for row in [1..5]
 			height: IMAGE_HEIGHT
 			x: xPosition
 			y: yPosition
-			#image: imagePath
 			backgroundColor: COLOR_MAGENTA
+		layer.image = imagePath if SHOW_IMAGES
 		gridLayers[layerName] = layer
 
 for name, layer of gridLayers
@@ -96,8 +97,8 @@ headerTitleLayer = new Layer
 	width: 640
 	x: (DEVICE_WIDTH * .5) - 320
 	height: HEADER
-	#image: "images/header.png"
 	superLayer: headerLayer
+headerTitleLayer.image = "images/header.png" if SHOW_IMAGES
 
 detailBackgroundLayer = new Layer
 	width: DEVICE_WIDTH
@@ -143,23 +144,26 @@ detailHeaderExtendRightLayer = new Layer
 	width: 320
 	x: DEVICE_WIDTH - 320
 	height: HEADER
-	#image: "images/detail_header_extender_right.png"
 	superLayer: detailHeaderLayer
+detailHeaderExtendRightLayer.image = "images/detail_header_extender_right.png" if SHOW_IMAGES
+
 
 detailHeaderTitleLayer = new Layer
 	width: 480
 	x: (DEVICE_WIDTH * .5) - 240
 	height: HEADER
-	#image: "images/detail_header.png"
 	superLayer: detailHeaderLayer
+detailHeaderTitleLayer.image = "images/detail_header.png" if SHOW_IMAGES
+
 
 detailFooterLayer = new Layer
 	width: DEVICE_WIDTH
 	height: FOOTER
 	y: DEVICE_HEIGHT - FOOTER
 	backgroundColor: COLOR_BLUE
-	#image: "images/detail_footer.png"
+	#image: 
 	index: 10
+detailFooterLayer.image = "images/detail_footer.png" if SHOW_IMAGES
 
 detailFooterLayer.originY = 1
 detailFooterLayer.rotationX = 90
@@ -182,29 +186,29 @@ detailFooterIconPlus1Layer = new Layer
 	height: 60
 	x: CENTER - UNIT * 3	
 	y: 15
-	#image: "images/icons/icon_plus-one.png"
 	superLayer: detailFooterLayer
+detailFooterIconPlus1Layer.image = "images/icons/icon_plus-one.png" if SHOW_IMAGES
 
 detailFooterIconCommentLayer = new Layer
 	width: 60
 	height: 60
 	x: CENTER - UNIT
 	y: 15
-	#image: "images/icons/icon_comment.png"
 	superLayer: detailFooterLayer
+detailFooterIconCommentLayer.image = "images/icons/icon_comment.png" if SHOW_IMAGES
 
 detailFooterIconAddLayer = new Layer
 	width: 60
 	height: 60
 	x: CENTER + UNIT
 	y: 15
-	#image: "images/icons/icon_add.png"
 	superLayer: detailFooterLayer
+detailFooterIconAddLayer.image = "images/icons/icon_add.png" if SHOW_IMAGES
 
 detailFooterIconShareLayer = new Layer
 	width: 60
 	height: 60
 	x: CENTER + UNIT * 3
 	y: 15
-	#image: "images/icons/icon_share.png"
 	superLayer: detailFooterLayer
+detailFooterIconShareLayer.image = "images/icons/icon_share.png" if SHOW_IMAGES
