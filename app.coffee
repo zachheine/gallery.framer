@@ -55,7 +55,7 @@ for name, layer of gridLayers
 		state = this.states.state
 		currentLayer = this.name
 		if state isnt 'detail'
-# 			print 'Go to detail'
+			# print 'Go to detail'
 			this.index = 100
 			for name, layer of gridLayers
 				layer.ignoreEvents = true if name isnt currentLayer
@@ -63,7 +63,7 @@ for name, layer of gridLayers
 			this.states.next()
 			staticDetailLayer.states.next()
 		else
-# 			print 'Back to grid'
+			# print 'Back to grid'
 			for name, layer of gridLayers
 				layer.index = 1
 				layer.ignoreEvents = false
