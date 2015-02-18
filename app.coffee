@@ -203,37 +203,21 @@ CENTER = (DEVICE_WIDTH * .5) - 30
 # UNIT is 86 WHEN DEVICE_WIDTH is 640
 UNIT = (DEVICE_WIDTH - (DEVICE_WIDTH * .06)) / 7
 
-detailFooterIconPlus1Layer = new Layer
-	width: 60
-	height: 60
-	x: CENTER - UNIT * 3	
-	y: 15
-	superLayer: detailFooterLayer
-detailFooterIconPlus1Layer.image = "images/icons/icon_plus-one.png" if SHOW_IMAGES
+detailFooterIcons = [
+	{ name: "Plus1", img: "icon_plus-one.png", x: CENTER - UNIT * 3 }
+	{ name: "Comment", img: "icon_comment.png", x: CENTER - UNIT }
+	{ name: "Add", img: "icon_add.png", x: CENTER + UNIT }
+	{ name: "Share", img: "icon_share.png", x: CENTER + UNIT * 3 }
+]
 
-detailFooterIconCommentLayer = new Layer
-	width: 60
-	height: 60
-	x: CENTER - UNIT
-	y: 15
-	superLayer: detailFooterLayer
-detailFooterIconCommentLayer.image = "images/icons/icon_comment.png" if SHOW_IMAGES
-
-detailFooterIconAddLayer = new Layer
-	width: 60
-	height: 60
-	x: CENTER + UNIT
-	y: 15
-	superLayer: detailFooterLayer
-detailFooterIconAddLayer.image = "images/icons/icon_add.png" if SHOW_IMAGES
-
-detailFooterIconShareLayer = new Layer
-	width: 60
-	height: 60
-	x: CENTER + UNIT * 3
-	y: 15
-	superLayer: detailFooterLayer
-detailFooterIconShareLayer.image = "images/icons/icon_share.png" if SHOW_IMAGES
+for icon in detailFooterIcons
+	icon.layer = new Layer
+		width: 60
+		height: 60 
+		x: icon.x
+		y: 15
+		superLayer: detailFooterLayer
+	icon.layer.image = "images/icons/" + icon.img if SHOW_IMAGES
 
 # -----------------------------------
 #  HAMMERJS - Integration by Koen Bok 
