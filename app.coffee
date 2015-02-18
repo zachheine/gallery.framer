@@ -78,16 +78,14 @@ goToDetail = (currentLayer, currentLayerName) ->
 		layer.ignoreEvents = true if layerName isnt currentLayer.name
 	currentLayer.backgroundColor = 'green'
 	currentLayer.states.switch('detail')
-	detailLayers.Background.layer.states.next()
-	detailLayers.Header.layer.states.next()
-	detailLayers.Footer.layer.states.next()
-
+	for layerName, detailLayer of detailLayers
+		detailLayer.layer.states.next()
+		
 backToGrid = (currentLayer) ->
 	currentLayer.backgroundColor = COLOR_MAGENTA
 	currentLayer.states.switch('default')
-	detailLayers.Background.layer.states.switchInstant('default')
-	detailLayers.Header.layer.states.switchInstant('default')
-	detailLayers.Footer.layer.states.switchInstant('default')
+	for layerName, detailLayer of detailLayers
+		detailLayer.layer.states.switchInstant('default')
 
 headerLayer = new Layer
 	width: DEVICE_WIDTH
