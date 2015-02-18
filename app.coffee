@@ -42,7 +42,6 @@ for row in [1..5]
 			backgroundColor: COLOR_MAGENTA
 			xPart: xPart
 		layer.image = imagePath if SHOW_IMAGES
-		layer.draggable.enabled = true
 		gridLayers[layerName] = layer
 
 for name, layer of gridLayers
@@ -78,12 +77,15 @@ goToDetail = (currentLayer, currentLayerName) ->
 		layer.ignoreEvents = true if layerName isnt currentLayer.name
 	currentLayer.backgroundColor = 'green'
 	currentLayer.states.switch('detail')
+	currentLayer.draggable.enabled = true
+	currentLayer.draggable.speedX = 0 # Not sure about this constraint
 	for layerName, detailLayer of detailLayers
 		detailLayer.layer.states.next()
 		
 backToGrid = (currentLayer) ->
 	currentLayer.backgroundColor = COLOR_MAGENTA
 	currentLayer.states.switch('default')
+	currentLayer.draggable.enabled = false
 	for layerName, detailLayer of detailLayers
 		detailLayer.layer.states.switchInstant('default')
 
