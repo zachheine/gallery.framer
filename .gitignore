@@ -1,4 +1,5 @@
 *.DS_store
+*.psd
 .temp.html
 framer/backup.coffee
 framer/app.manifest

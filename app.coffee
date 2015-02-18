@@ -1,94 +1,210 @@
 # UX Engineer, Design - Prototyping Exercise
 # Zach Heineman, 2015
 
-DEVICE_WIDTH = 640
-DEVICE_HEIGHT = 920
-HEADER = 120
-MARGIN = 30
-GUTTER = 16
-IMAGE_WIDTH = 282
-IMAGE_HEIGHT = 206
-IMAGE_DETAIL_HEIGHT = 428 # Proportional height would be 468
-COLOR_BLUE = "#40a6f1"
-COLOR_MAGENTA = "#df0077"
+# iPhone 6 Plus = 828
+# iPhone 6 = 750
+# iPhone 5/4s = 640
+# Nexus 5 = 360 (x2)
 
-background = new BackgroundLayer
-	backgroundColor: "#fff"
+DEVICE_WIDTH = Framer.Device.screen.width
+DEVICE_HEIGHT = Framer.Device.screen.height
+if DEVICE_WIDTH < 640 # Hack for Nexus 5 (and hopefully other Androids)
+	DEVICE_WIDTH = DEVICE_WIDTH * 2; DEVICE_HEIGHT = DEVICE_HEIGHT * 2
+HEADER = 120; MARGIN = 30; GUTTER = 16; FOOTER = 90
+ORIGINAL_IMAGE_WIDTH = 282; ORIGINAL_IMAGE_HEIGHT = 206
+IMAGE_HEIGHT_RATIO = ORIGINAL_IMAGE_HEIGHT / ORIGINAL_IMAGE_WIDTH
+IMAGE_WIDTH = (DEVICE_WIDTH - (MARGIN * 2 + GUTTER)) / 2
+IMAGE_HEIGHT = IMAGE_WIDTH * IMAGE_HEIGHT_RATIO
+DETAIL_IMAGE_HEIGHT_RATIO = 428 / 640 # Original detail dimensions
+DETAIL_IMAGE_HEIGHT = DEVICE_WIDTH * DETAIL_IMAGE_HEIGHT_RATIO
+DETAIL_IMAGE_Y_POSITION = (DEVICE_HEIGHT * .5) - (DETAIL_IMAGE_HEIGHT / 2)
+COLOR_BLUE = "#40a6f1"; COLOR_MAGENTA = "#df0077"
 
-#staticGridLayer = new Layer
-	#width: 640
-	#height: 920
-	#image: "images/grid.jpg"
-	
-headerLayer = new Layer
-	width: DEVICE_WIDTH
-	height: HEADER
-	image: "images/header.png"
-	backgroundColor: COLOR_BLUE
-	#opacity: .8
-	
+new BackgroundLayer backgroundColor: "#fff"
+
 gridLayers = {}
 
-for row in [1..4]
+for row in [1..5]
 	for column in ['A', 'B']
 		layerName = column + row
-		imagePath = 'images/grid/' + layerName + '.jpg'
 		xPosition = if column == 'A' then MARGIN else MARGIN + IMAGE_WIDTH + GUTTER
 		yPosition = (HEADER + MARGIN) + ((row - 1) * (IMAGE_HEIGHT + GUTTER))
-		gridLayers[layerName] = new Layer
+		imagePath = 'images/grid/' + layerName + '.jpg'
+		layer = new Layer
 			name: layerName
 			width: IMAGE_WIDTH
 			height: IMAGE_HEIGHT
 			x: xPosition
 			y: yPosition
-			image: imagePath
-			#backgroundColor: COLOR_MAGENTA
-			#opacity: .8
+			#image: imagePath
+			backgroundColor: COLOR_MAGENTA
+		gridLayers[layerName] = layer
 
 for name, layer of gridLayers
 	layer.states.add
 		detail: 
 			x: 0
-			y: 246
+			y: DETAIL_IMAGE_Y_POSITION
 			width: DEVICE_WIDTH
-			height: IMAGE_DETAIL_HEIGHT
+			height: DETAIL_IMAGE_HEIGHT
 	layer.states.animationOptions =
 		curve: "spring(300,25,0)"
 	layer.on Events.Click, ->
-		state = this.states.state
-		currentLayer = this.name
-		if state isnt 'detail'
-			#print 'Go to detail'
+		currentState = this.states.state
+		currentLayerName = this.name
+		if currentState isnt 'detail' # Go to detail
 			this.index = 100
-			for name, layer of gridLayers
-				layer.ignoreEvents = true if name isnt currentLayer
+			for layerName, layer of gridLayers
+				layer.ignoreEvents = true if layerName isnt currentLayerName
 			this.backgroundColor = 'green'
 			this.states.next()
-			staticDetailLayer.states.next()
-		else
-			#print 'Back to grid'
+			detailBackgroundLayer.states.next()
+			detailHeaderLayer.states.next()
+			detailFooterLayer.states.next()
+		else # Back to grid
 			this.backgroundColor = COLOR_MAGENTA
 			this.states.next()
-			staticDetailLayer.states.switchInstant('default')
+			detailBackgroundLayer.states.switchInstant('default')
+			detailHeaderLayer.states.switchInstant('default')
+			detailFooterLayer.states.switchInstant('default')
 	layer.on Events.AnimationEnd, ->
-		state = this.states.state
-		if state isnt 'detail'
-			for name, layer of gridLayers
+		currentState = this.states.state
+		if currentState isnt 'detail' # Reset the grid layers
+			for layerName, layer of gridLayers
 				layer.index = 1
 				layer.ignoreEvents = false
 
-staticDetailLayer = new Layer
+headerLayer = new Layer
+	width: DEVICE_WIDTH
+	height: HEADER
+	
+headerExtendLeftLayer = new Layer
+	width: 320
+	x: 0
+	height: HEADER
+	image: "images/header_extender.png"
+	superLayer: headerLayer
+
+headerExtendRightLayer = new Layer
+	width: 320
+	x: DEVICE_WIDTH - 320
+	height: HEADER
+	image: "images/header_extender.png"
+	superLayer: headerLayer
+
+headerTitleLayer = new Layer
 	width: 640
-	height: 920
-	image: "images/detail_no_image.png"
-	#image: "images/detail.jpg"
+	x: (DEVICE_WIDTH * .5) - 320
+	height: HEADER
+	#image: "images/header.png"
+	superLayer: headerLayer
+
+detailBackgroundLayer = new Layer
+	width: DEVICE_WIDTH
+	height: DEVICE_HEIGHT
+	backgroundColor: "black"
 	opacity: 0
 		
-staticDetailLayer.states.add
+detailBackgroundLayer.states.add
 	detail:
 		opacity: 1
 
-staticDetailLayer.states.animationOptions =
+detailBackgroundLayer.states.animationOptions =
 	curve: "bezier-curve"
 	curveOptions: "ease-out"
 	time: .2
+	
+detailHeaderLayer = new Layer
+	width: DEVICE_WIDTH
+	height: HEADER
+	backgroundColor: COLOR_BLUE
+	index: 10
+
+detailHeaderLayer.originY = 0
+detailHeaderLayer.rotationX = 90
+
+detailHeaderLayer.states.add
+	detail:
+		rotationX: 0
+
+detailHeaderLayer.states.animationOptions =
+	curve: "bezier-curve"
+	curveOptions: "ease-out"
+	time: .2
+
+detailHeaderExtendLeftLayer = new Layer
+	width: 320
+	x: 0
+	height: HEADER
+	image: "images/detail_header_extender_left.png"
+	superLayer: detailHeaderLayer
+
+detailHeaderExtendRightLayer = new Layer
+	width: 320
+	x: DEVICE_WIDTH - 320
+	height: HEADER
+	#image: "images/detail_header_extender_right.png"
+	superLayer: detailHeaderLayer
+
+detailHeaderTitleLayer = new Layer
+	width: 480
+	x: (DEVICE_WIDTH * .5) - 240
+	height: HEADER
+	#image: "images/detail_header.png"
+	superLayer: detailHeaderLayer
+
+detailFooterLayer = new Layer
+	width: DEVICE_WIDTH
+	height: FOOTER
+	y: DEVICE_HEIGHT - FOOTER
+	backgroundColor: COLOR_BLUE
+	#image: "images/detail_footer.png"
+	index: 10
+
+detailFooterLayer.originY = 1
+detailFooterLayer.rotationX = 90
+
+detailFooterLayer.states.add
+	detail:
+		rotationX: 0
+
+detailFooterLayer.states.animationOptions =
+	curve: "bezier-curve"
+	curveOptions: "ease-out"
+	time: .2
+
+CENTER = (DEVICE_WIDTH * .5) - 30
+# UNIT is 86 WHEN DEVICE_WIDTH is 640
+UNIT = (DEVICE_WIDTH - (DEVICE_WIDTH * .06)) / 7
+
+detailFooterIconPlus1Layer = new Layer
+	width: 60
+	height: 60
+	x: CENTER - UNIT * 3	
+	y: 15
+	#image: "images/icons/icon_plus-one.png"
+	superLayer: detailFooterLayer
+
+detailFooterIconCommentLayer = new Layer
+	width: 60
+	height: 60
+	x: CENTER - UNIT
+	y: 15
+	#image: "images/icons/icon_comment.png"
+	superLayer: detailFooterLayer
+
+detailFooterIconAddLayer = new Layer
+	width: 60
+	height: 60
+	x: CENTER + UNIT
+	y: 15
+	#image: "images/icons/icon_add.png"
+	superLayer: detailFooterLayer
+
+detailFooterIconShareLayer = new Layer
+	width: 60
+	height: 60
+	x: CENTER + UNIT * 3
+	y: 15
+	#image: "images/icons/icon_share.png"
+	superLayer: detailFooterLayer
