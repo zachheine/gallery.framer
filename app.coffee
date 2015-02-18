@@ -15,17 +15,17 @@ COLOR_MAGENTA = "#df0077"
 background = new BackgroundLayer
 	backgroundColor: "#fff"
 
-# staticGridLayer = new Layer
-# 	width: 640
-# 	height: 920
-# 	image: "images/grid.jpg"
+#staticGridLayer = new Layer
+	#width: 640
+	#height: 920
+	#image: "images/grid.jpg"
 	
 headerLayer = new Layer
 	width: DEVICE_WIDTH
 	height: HEADER
 	image: "images/header.png"
 	backgroundColor: COLOR_BLUE
-	opacity: .8
+	#opacity: .8
 	
 gridLayers = {}
 
@@ -42,8 +42,8 @@ for row in [1..4]
 			x: xPosition
 			y: yPosition
 			image: imagePath
-			# backgroundColor: COLOR_MAGENTA
-			# opacity: .8
+			#backgroundColor: COLOR_MAGENTA
+			#opacity: .8
 
 for name, layer of gridLayers
 	layer.states.add
@@ -58,7 +58,7 @@ for name, layer of gridLayers
 		state = this.states.state
 		currentLayer = this.name
 		if state isnt 'detail'
-			# print 'Go to detail'
+			#print 'Go to detail'
 			this.index = 100
 			for name, layer of gridLayers
 				layer.ignoreEvents = true if name isnt currentLayer
@@ -66,7 +66,7 @@ for name, layer of gridLayers
 			this.states.next()
 			staticDetailLayer.states.next()
 		else
-			# print 'Back to grid'
+			#print 'Back to grid'
 			this.backgroundColor = COLOR_MAGENTA
 			this.states.next()
 			staticDetailLayer.states.switchInstant('default')
@@ -81,7 +81,7 @@ staticDetailLayer = new Layer
 	width: 640
 	height: 920
 	image: "images/detail_no_image.png"
-	# image: "images/detail.jpg"
+	#image: "images/detail.jpg"
 	opacity: 0
 		
 staticDetailLayer.states.add
