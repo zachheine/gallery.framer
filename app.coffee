@@ -67,22 +67,21 @@ for name, layer of gridLayers
 			staticDetailLayer.states.next()
 		else
 			# print 'Back to grid'
-
 			this.backgroundColor = COLOR_MAGENTA
 			this.states.next()
 			staticDetailLayer.states.switchInstant('default')
-	layer.on Events.StateDidSwitch, ->
-		state = this.states.states
-		print state
-# 		if state isnt 'detail'
-# 		for name, layer of gridLayers
-# 			layer.index = 1
-# 			layer.ignoreEvents = false
+	layer.on Events.AnimationEnd, ->
+		state = this.states.state
+		if state isnt 'detail'
+			for name, layer of gridLayers
+				layer.index = 1
+				layer.ignoreEvents = false
 
 staticDetailLayer = new Layer
 	width: 640
 	height: 920
-	image: "images/detail.jpg"
+	image: "images/detail_no_image.png"
+	# image: "images/detail.jpg"
 	opacity: 0
 		
 staticDetailLayer.states.add
@@ -91,5 +90,5 @@ staticDetailLayer.states.add
 
 staticDetailLayer.states.animationOptions =
 	curve: "bezier-curve"
-	curveOptions: "ease-in"
-	time: .3
+	curveOptions: "ease-out"
+	time: .2
