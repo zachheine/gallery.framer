@@ -199,15 +199,15 @@ detailFooterLayer.states.animationOptions =
 	curveOptions: "ease-out"
 	time: .2
 
-CENTER = (DEVICE_WIDTH * .5) - 30
+CENTER_ICON = (DEVICE_WIDTH * .5) - 30
 # UNIT is 86 WHEN DEVICE_WIDTH is 640
 UNIT = (DEVICE_WIDTH - (DEVICE_WIDTH * .06)) / 7
 
 detailFooterIcons = [
-	{ name: "Plus1", img: "icon_plus-one.png", x: CENTER - UNIT * 3 }
-	{ name: "Comment", img: "icon_comment.png", x: CENTER - UNIT }
-	{ name: "Add", img: "icon_add.png", x: CENTER + UNIT }
-	{ name: "Share", img: "icon_share.png", x: CENTER + UNIT * 3 }
+	{ name: "Plus1", img: "icon_plus-one.png", x: CENTER_ICON - UNIT * 3 }
+	{ name: "Comment", img: "icon_comment.png", x: CENTER_ICON - UNIT }
+	{ name: "Add", img: "icon_add.png", x: CENTER_ICON + UNIT }
+	{ name: "Share", img: "icon_share.png", x: CENTER_ICON + UNIT * 3 }
 ]
 
 for icon in detailFooterIcons
