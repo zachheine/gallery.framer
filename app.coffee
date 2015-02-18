@@ -40,6 +40,9 @@ for row in [1..5]
 			x: xPosition
 			y: yPosition
 			backgroundColor: COLOR_MAGENTA
+			#shadowY: 3
+			#shadowBlur: 7
+			#shadowColor: "rgba(0, 0, 0, 0.2)"
 			xPart: xPart
 		layer.image = imagePath if SHOW_IMAGES
 		gridLayers[layerName] = layer
