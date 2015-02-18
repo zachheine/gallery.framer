@@ -1,6 +1,54 @@
 # UX Engineer, Design - Prototyping Exercise
 # Zach Heineman, 2015
 
+# This needs to be loaded at the beginning...
+# -----------------------------------
+#  HAMMERJS - Integration by Koen Bok 
+# -----------------------------------
+
+HammerEvents =
+	
+	Tap: "tap"
+	DoubleTap: "doubletap"
+	Hold: "hold"
+	Touch: "touch"
+	Release: "release"
+	Gesture: "gesture"
+
+	Swipe: "swipe"
+	SwipeUp: "swipeup"
+	SwipeDown: "swipedown"
+	SwipeLeft: "swipeleft"
+	SwipeRight: "swiperight"
+	
+	Transform: "transform"
+	TransformStart: "transformstart"
+	TransformEnd: "transformend"
+
+	Rotate: "rotate"
+
+	Pinch: "pinch"
+	PinchIn: "pinchin"
+	PinchOut: "pinchout"
+
+# Add the Hammer events to the base Framer events
+window.Events = _.extend Events, HammerEvents
+
+# Patch the on method on layers to listen to Hammer events
+class HammerLayer extends Framer.Layer
+	
+	on: (eventName, f) ->
+		
+		if eventName in _.values(HammerEvents)
+			@ignoreEvents = false			
+			hammer = Hammer(@_element).on eventName, f
+		
+		else
+			super eventName, f
+
+# Replace the default Layer with the HammerLayer
+window.Layer = HammerLayer
+
 # iPhone 6 Plus = 828
 # iPhone 6 = 750
 # iPhone 5/4s = 640
@@ -229,50 +277,3 @@ for icon in detailFooterIcons
 		y: 15
 		superLayer: detailLayers.Footer.layer
 	icon.layer.image = "images/icons/" + icon.img if SHOW_IMAGES
-
-# -----------------------------------
-#  HAMMERJS - Integration by Koen Bok 
-# -----------------------------------
-
-HammerEvents =
-	
-	Tap: "tap"
-	DoubleTap: "doubletap"
-	Hold: "hold"
-	Touch: "touch"
-	Release: "release"
-	Gesture: "gesture"
-
-	Swipe: "swipe"
-	SwipeUp: "swipeup"
-	SwipeDown: "swipedown"
-	SwipeLeft: "swipeleft"
-	SwipeRight: "swiperight"
-	
-	Transform: "transform"
-	TransformStart: "transformstart"
-	TransformEnd: "transformend"
-
-	Rotate: "rotate"
-
-	Pinch: "pinch"
-	PinchIn: "pinchin"
-	PinchOut: "pinchout"
-
-# Add the Hammer events to the base Framer events
-window.Events = _.extend Events, HammerEvents
-
-# Patch the on method on layers to listen to Hammer events
-class HammerLayer extends Framer.Layer
-	
-	on: (eventName, f) ->
-		
-		if eventName in _.values(HammerEvents)
-			@ignoreEvents = false			
-			hammer = Hammer(@_element).on eventName, f
-		
-		else
-			super eventName, f
-
-# Replace the default Layer with the HammerLayer
-window.Layer = HammerLayer
