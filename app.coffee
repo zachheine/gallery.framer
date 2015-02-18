@@ -15,14 +15,15 @@ COLOR_MAGENTA = "#df0077"
 background = new BackgroundLayer
 	backgroundColor: "#fff"
 
-staticGridLayer = new Layer
-	width: 640
-	height: 920
-	image: "images/grid.jpg"
+# staticGridLayer = new Layer
+# 	width: 640
+# 	height: 920
+# 	image: "images/grid.jpg"
 	
 headerLayer = new Layer
 	width: DEVICE_WIDTH
 	height: HEADER
+	image: "images/header.png"
 	backgroundColor: COLOR_BLUE
 	opacity: .8
 	
@@ -31,6 +32,7 @@ gridLayers = {}
 for row in [1..4]
 	for column in ['A', 'B']
 		layerName = column + row
+		imagePath = 'images/grid/' + layerName + '.jpg'
 		xPosition = if column == 'A' then MARGIN else MARGIN + IMAGE_WIDTH + GUTTER
 		yPosition = (HEADER + MARGIN) + ((row - 1) * (IMAGE_HEIGHT + GUTTER))
 		gridLayers[layerName] = new Layer
@@ -39,8 +41,9 @@ for row in [1..4]
 			height: IMAGE_HEIGHT
 			x: xPosition
 			y: yPosition
-			backgroundColor: COLOR_MAGENTA
-			opacity: .8
+			image: imagePath
+			# backgroundColor: COLOR_MAGENTA
+			# opacity: .8
 
 for name, layer of gridLayers
 	layer.states.add
@@ -64,12 +67,17 @@ for name, layer of gridLayers
 			staticDetailLayer.states.next()
 		else
 			# print 'Back to grid'
-			for name, layer of gridLayers
-				layer.index = 1
-				layer.ignoreEvents = false
+
 			this.backgroundColor = COLOR_MAGENTA
 			this.states.next()
 			staticDetailLayer.states.switchInstant('default')
+	layer.on Events.StateDidSwitch, ->
+		state = this.states.states
+		print state
+# 		if state isnt 'detail'
+# 		for name, layer of gridLayers
+# 			layer.index = 1
+# 			layer.ignoreEvents = false
 
 staticDetailLayer = new Layer
 	width: 640
