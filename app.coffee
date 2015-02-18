@@ -78,16 +78,16 @@ goToDetail = (currentLayer, currentLayerName) ->
 		layer.ignoreEvents = true if layerName isnt currentLayer.name
 	currentLayer.backgroundColor = 'green'
 	currentLayer.states.switch('detail')
-	detailBackgroundLayer.states.next()
-	detailHeaderLayer.states.next()
-	detailFooterLayer.states.next()
+	detailLayers.Background.layer.states.next()
+	detailLayers.Header.layer.states.next()
+	detailLayers.Footer.layer.states.next()
 
 backToGrid = (currentLayer) ->
 	currentLayer.backgroundColor = COLOR_MAGENTA
 	currentLayer.states.switch('default')
-	detailBackgroundLayer.states.switchInstant('default')
-	detailHeaderLayer.states.switchInstant('default')
-	detailFooterLayer.states.switchInstant('default')
+	detailLayers.Background.layer.states.switchInstant('default')
+	detailLayers.Header.layer.states.switchInstant('default')
+	detailLayers.Footer.layer.states.switchInstant('default')
 
 headerLayer = new Layer
 	width: DEVICE_WIDTH
@@ -124,35 +124,44 @@ headerTitleLayer.on Events.Hold, ()=>
 		else
 			layer.states.switch('default')
 
-detailBackgroundLayer = new Layer
-	width: DEVICE_WIDTH
-	height: DEVICE_HEIGHT
-	backgroundColor: "black"
-	opacity: 0
+detailLayers = {
+	"Background": {
+		width: DEVICE_WIDTH
+		height: DEVICE_HEIGHT
+		backgroundColor: "black"
+	}
+	"Header": {}
+	"Footer": {}
+}
 
-detailBackgroundLayer.states.add
-	detail:
-		opacity: 1
+for name, layer of detailLayers
+	layer.layer = new Layer
+		width: layer.width
+		height: layer.height
+		backgroundColor: layer.backgroundColor
+		opacity: 0
+	layer.layer.states.add
+		detail:
+			opacity: 1
+	layer.layer.states.animationOptions =
+		curve: "bezier-curve"
+		curveOptions: "ease-out"
+		time: .2
 
-detailBackgroundLayer.states.animationOptions =
-	curve: "bezier-curve"
-	curveOptions: "ease-out"
-	time: .2
-	
-detailHeaderLayer = new Layer
+detailLayers.Header.layer = new Layer
 	width: DEVICE_WIDTH
 	height: HEADER
 	backgroundColor: COLOR_BLUE
 	index: 10
 
-detailHeaderLayer.originY = 0
-detailHeaderLayer.rotationX = 90
+detailLayers.Header.layer.originY = 0
+detailLayers.Header.layer.rotationX = 90
 
-detailHeaderLayer.states.add
+detailLayers.Header.layer.states.add
 	detail:
 		rotationX: 0
 
-detailHeaderLayer.states.animationOptions =
+detailLayers.Header.layer.states.animationOptions =
 	curve: "bezier-curve"
 	curveOptions: "ease-out"
 	time: .2
@@ -162,39 +171,39 @@ detailHeaderExtendLeftLayer = new Layer
 	x: 0
 	height: HEADER
 	image: "images/detail_header_extender_left.png"
-	superLayer: detailHeaderLayer
+	superLayer: detailLayers.Header.layer
 
 detailHeaderExtendRightLayer = new Layer
 	width: 320
 	x: DEVICE_WIDTH - 320
 	height: HEADER
-	superLayer: detailHeaderLayer
+	superLayer: detailLayers.Header.layer
 detailHeaderExtendRightLayer.image = "images/detail_header_extender_right.png" if SHOW_IMAGES
 
 detailHeaderTitleLayer = new Layer
 	width: 480
 	x: (DEVICE_WIDTH * .5) - 240
 	height: HEADER
-	superLayer: detailHeaderLayer
+	superLayer: detailLayers.Header.layer
 detailHeaderTitleLayer.image = "images/detail_header.png" if SHOW_IMAGES
 
-detailFooterLayer = new Layer
+detailLayers.Footer.layer = new Layer
 	width: DEVICE_WIDTH
 	height: FOOTER
 	y: DEVICE_HEIGHT - FOOTER
 	backgroundColor: COLOR_BLUE
 	#image: 
 	index: 10
-detailFooterLayer.image = "images/detail_footer.png" if SHOW_IMAGES
+detailLayers.Footer.layer.image = "images/detail_footer.png" if SHOW_IMAGES
 
-detailFooterLayer.originY = 1
-detailFooterLayer.rotationX = 90
+detailLayers.Footer.layer.originY = 1
+detailLayers.Footer.layer.rotationX = 90
 
-detailFooterLayer.states.add
+detailLayers.Footer.layer.states.add
 	detail:
 		rotationX: 0
 
-detailFooterLayer.states.animationOptions =
+detailLayers.Footer.layer.states.animationOptions =
 	curve: "bezier-curve"
 	curveOptions: "ease-out"
 	time: .2
@@ -216,7 +225,7 @@ for icon in detailFooterIcons
 		height: 60 
 		x: icon.x
 		y: 15
-		superLayer: detailFooterLayer
+		superLayer: detailLayers.Footer.layer
 	icon.layer.image = "images/icons/" + icon.img if SHOW_IMAGES
 
 # -----------------------------------
