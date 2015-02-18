@@ -32,6 +32,7 @@ for row in [1..5]
 		xPosition = if column == 'A' then MARGIN else MARGIN + IMAGE_WIDTH + GUTTER
 		yPosition = (HEADER + MARGIN) + ((row - 1) * (IMAGE_HEIGHT + GUTTER))
 		imagePath = 'images/grid/' + layerName + '.jpg'
+		xPart = if column == 'A' then xPosition - IMAGE_WIDTH else xPosition + IMAGE_WIDTH
 		layer = new Layer
 			name: layerName
 			width: IMAGE_WIDTH
@@ -39,7 +40,9 @@ for row in [1..5]
 			x: xPosition
 			y: yPosition
 			backgroundColor: COLOR_MAGENTA
+			xPart: xPart
 		layer.image = imagePath if SHOW_IMAGES
+		layer.draggable.enabled = true
 		gridLayers[layerName] = layer
 
 for name, layer of gridLayers
@@ -49,6 +52,9 @@ for name, layer of gridLayers
 			y: DETAIL_IMAGE_Y_POSITION
 			width: DEVICE_WIDTH
 			height: DETAIL_IMAGE_HEIGHT
+		parted:
+			x: xPart
+			
 	layer.states.animationOptions =
 		curve: "spring(300,25,0)"
 	layer.on Events.Click, ->
@@ -71,14 +77,14 @@ goToDetail = (currentLayer, currentLayerName) ->
 	for layerName, layer of gridLayers
 		layer.ignoreEvents = true if layerName isnt currentLayer.name
 	currentLayer.backgroundColor = 'green'
-	currentLayer.states.next()
+	currentLayer.states.switch('detail')
 	detailBackgroundLayer.states.next()
 	detailHeaderLayer.states.next()
 	detailFooterLayer.states.next()
 
 backToGrid = (currentLayer) ->
 	currentLayer.backgroundColor = COLOR_MAGENTA
-	currentLayer.states.next()
+	currentLayer.states.switch('default')
 	detailBackgroundLayer.states.switchInstant('default')
 	detailHeaderLayer.states.switchInstant('default')
 	detailFooterLayer.states.switchInstant('default')
@@ -111,12 +117,19 @@ headerTitleLayer = new Layer
 	superLayer: headerLayer
 headerTitleLayer.image = "images/header.png" if SHOW_IMAGES
 
+headerTitleLayer.on Events.Hold, ()=> 
+	for layerName, layer of gridLayers
+		if layer.states.state isnt 'parted'
+			layer.states.switch('parted')
+		else
+			layer.states.switch('default')
+
 detailBackgroundLayer = new Layer
 	width: DEVICE_WIDTH
 	height: DEVICE_HEIGHT
 	backgroundColor: "black"
 	opacity: 0
-		
+
 detailBackgroundLayer.states.add
 	detail:
 		opacity: 1
@@ -158,14 +171,12 @@ detailHeaderExtendRightLayer = new Layer
 	superLayer: detailHeaderLayer
 detailHeaderExtendRightLayer.image = "images/detail_header_extender_right.png" if SHOW_IMAGES
 
-
 detailHeaderTitleLayer = new Layer
 	width: 480
 	x: (DEVICE_WIDTH * .5) - 240
 	height: HEADER
 	superLayer: detailHeaderLayer
 detailHeaderTitleLayer.image = "images/detail_header.png" if SHOW_IMAGES
-
 
 detailFooterLayer = new Layer
 	width: DEVICE_WIDTH
@@ -223,3 +234,50 @@ detailFooterIconShareLayer = new Layer
 	y: 15
 	superLayer: detailFooterLayer
 detailFooterIconShareLayer.image = "images/icons/icon_share.png" if SHOW_IMAGES
+
+# -----------------------------------
+#  HAMMERJS - Integration by Koen Bok 
+# -----------------------------------
+
+HammerEvents =
+	
+	Tap: "tap"
+	DoubleTap: "doubletap"
+	Hold: "hold"
+	Touch: "touch"
+	Release: "release"
+	Gesture: "gesture"
+
+	Swipe: "swipe"
+	SwipeUp: "swipeup"
+	SwipeDown: "swipedown"
+	SwipeLeft: "swipeleft"
+	SwipeRight: "swiperight"
+	
+	Transform: "transform"
+	TransformStart: "transformstart"
+	TransformEnd: "transformend"
+
+	Rotate: "rotate"
+
+	Pinch: "pinch"
+	PinchIn: "pinchin"
+	PinchOut: "pinchout"
+
+# Add the Hammer events to the base Framer events
+window.Events = _.extend Events, HammerEvents
+
+# Patch the on method on layers to listen to Hammer events
+class HammerLayer extends Framer.Layer
+	
+	on: (eventName, f) ->
+		
+		if eventName in _.values(HammerEvents)
+			@ignoreEvents = false			
+			hammer = Hammer(@_element).on eventName, f
+		
+		else
+			super eventName, f
+
+# Replace the default Layer with the HammerLayer
+window.Layer = HammerLayer
