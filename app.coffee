@@ -23,6 +23,7 @@ SHOW_IMAGES = true
 
 new BackgroundLayer backgroundColor: "#fff"
 
+detailLayer = {}
 gridLayers = {}
 
 for row in [1..5]
@@ -54,26 +55,33 @@ for name, layer of gridLayers
 		currentState = this.states.state
 		currentLayerName = this.name
 		if currentState isnt 'detail' # Go to detail
-			this.index = 100
-			for layerName, layer of gridLayers
-				layer.ignoreEvents = true if layerName isnt currentLayerName
-			this.backgroundColor = 'green'
-			this.states.next()
-			detailBackgroundLayer.states.next()
-			detailHeaderLayer.states.next()
-			detailFooterLayer.states.next()
+			goToDetail(this)
 		else # Back to grid
-			this.backgroundColor = COLOR_MAGENTA
-			this.states.next()
-			detailBackgroundLayer.states.switchInstant('default')
-			detailHeaderLayer.states.switchInstant('default')
-			detailFooterLayer.states.switchInstant('default')
+			backToGrid(this)
 	layer.on Events.AnimationEnd, ->
 		currentState = this.states.state
 		if currentState isnt 'detail' # Reset the grid layers
 			for layerName, layer of gridLayers
 				layer.index = 1
 				layer.ignoreEvents = false
+
+goToDetail = (currentLayer, currentLayerName) ->
+	detailLayer = currentLayer
+	currentLayer.index = 100
+	for layerName, layer of gridLayers
+		layer.ignoreEvents = true if layerName isnt currentLayer.name
+	currentLayer.backgroundColor = 'green'
+	currentLayer.states.next()
+	detailBackgroundLayer.states.next()
+	detailHeaderLayer.states.next()
+	detailFooterLayer.states.next()
+
+backToGrid = (currentLayer) ->
+	currentLayer.backgroundColor = COLOR_MAGENTA
+	currentLayer.states.next()
+	detailBackgroundLayer.states.switchInstant('default')
+	detailHeaderLayer.states.switchInstant('default')
+	detailFooterLayer.states.switchInstant('default')
 
 headerLayer = new Layer
 	width: DEVICE_WIDTH
@@ -92,6 +100,9 @@ headerExtendRightLayer = new Layer
 	height: HEADER
 	image: "images/header_extender.png"
 	superLayer: headerLayer
+
+headerExtendRightLayer.on Events.Click, ->
+	backToGrid(detailLayer)
 
 headerTitleLayer = new Layer
 	width: 640
