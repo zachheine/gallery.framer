@@ -23,7 +23,7 @@ SHOW_IMAGES = true
 
 new BackgroundLayer backgroundColor: "#fff"
 
-detailLayer = {}
+currentDetailLayer = {}
 gridLayers = {}
 
 for row in [1..5]
@@ -53,7 +53,6 @@ for name, layer of gridLayers
 			height: DETAIL_IMAGE_HEIGHT
 		parted:
 			x: xPart
-			
 	layer.states.animationOptions =
 		curve: "spring(300,25,0)"
 	layer.on Events.Click, ->
@@ -71,7 +70,7 @@ for name, layer of gridLayers
 				layer.ignoreEvents = false
 
 goToDetail = (currentLayer, currentLayerName) ->
-	detailLayer = currentLayer
+	currentDetailLayer = currentLayer
 	currentLayer.index = 100
 	for layerName, layer of gridLayers
 		layer.ignoreEvents = true if layerName isnt currentLayer.name
@@ -106,9 +105,6 @@ headerExtendRightLayer = new Layer
 	height: HEADER
 	image: "images/header_extender.png"
 	superLayer: headerLayer
-
-headerExtendRightLayer.on Events.Click, ->
-	backToGrid(detailLayer)
 
 headerTitleLayer = new Layer
 	width: 640
@@ -179,6 +175,9 @@ detailHeaderExtendRightLayer = new Layer
 	height: HEADER
 	superLayer: detailLayers.Header.layer
 detailHeaderExtendRightLayer.image = "images/detail_header_extender_right.png" if SHOW_IMAGES
+
+detailHeaderExtendRightLayer.on Events.Click, ->
+	backToGrid(currentDetailLayer)
 
 detailHeaderTitleLayer = new Layer
 	width: 480
