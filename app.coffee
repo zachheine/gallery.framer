@@ -73,13 +73,9 @@ for row in [1..5]
 				height: DETAIL_IMAGE_HEIGHT
 			parted:
 				x: xPart
-			swipe:
-				x: -DEVICE_WIDTH
-				y: DETAIL_IMAGE_Y_POSITION
-				width: DEVICE_WIDTH
-				height: DETAIL_IMAGE_HEIGHT		
 		layer.states.animationOptions =
 			curve: "spring(300,25,0)"
+
 		layer.on Events.Click, () ->
 			currentState = this.states.state
 			currentLayerName = this.name
