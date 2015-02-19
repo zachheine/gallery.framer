@@ -43,29 +43,33 @@ SHOW_IMAGES = true
 new BackgroundLayer backgroundColor: "#fff"
 
 currentDetailLayer = {}
-gridLayers = {}
+gridItems = {}
 
 for row in [1..5]
-	for column in ['A', 'B']
-		layerName = column + row
-		xPosition = if column == 'A' then MARGIN else MARGIN + IMAGE_WIDTH + GUTTER
+	for column in ["A", "B"]
+		itemName = column + row
+		xPosition = if column is "A" then MARGIN else MARGIN + IMAGE_WIDTH + GUTTER
 		yPosition = (HEADER + MARGIN) + ((row - 1) * (IMAGE_HEIGHT + GUTTER))
-		imagePath = 'images/grid/' + layerName + '.jpg'
-		xPart = if column == 'A' then xPosition - IMAGE_WIDTH else xPosition + IMAGE_WIDTH
-		layer = new Layer
-			name: layerName
+		imagePath = "images/grid/" + itemName + ".jpg"
+		xPart = if column == "A" then xPosition - IMAGE_WIDTH else xPosition + IMAGE_WIDTH
+		item = {}
+		item.containerLayer = new Layer
+			name: itemName
 			width: IMAGE_WIDTH
 			height: IMAGE_HEIGHT
 			x: xPosition
 			y: yPosition
-			backgroundColor: COLOR_MAGENTA
-			#shadowY: 3
-			#shadowBlur: 7
-			#shadowColor: "rgba(0, 0, 0, 0.2)"
+			#backgroundColor: COLOR_MAGENTA
 			xPart: xPart
-		layer.image = imagePath if SHOW_IMAGES
-		gridLayers[layerName] = layer
-		layer.states.add
+		item.imageLayer = new Layer
+			name: itemName
+			width: IMAGE_WIDTH
+			height: IMAGE_HEIGHT
+			#backgroundColor: "orange"
+		gridItems[itemName] = item
+		item.imageLayer.image = imagePath if SHOW_IMAGES
+		item.containerLayer.addSubLayer(item.imageLayer)
+		item.containerLayer.states.add
 			detail: 
 				x: 0
 				y: DETAIL_IMAGE_Y_POSITION
@@ -73,41 +77,55 @@ for row in [1..5]
 				height: DETAIL_IMAGE_HEIGHT
 			parted:
 				x: xPart
-		layer.states.animationOptions =
+		item.imageLayer.states.add
+			detail:
+				width: DEVICE_WIDTH
+				height: DETAIL_IMAGE_HEIGHT
+		item.containerLayer.states.animationOptions =
+			curve: "spring(300,25,0)"
+		item.imageLayer.states.animationOptions =
 			curve: "spring(300,25,0)"
 
-		layer.on Events.Click, () ->
-			currentState = this.states.state
-			currentLayerName = this.name
-			if currentState is 'default'  # Go to detail
-				goToDetail(this)
-			else if currentState is 'detail' # Back to grid
-				backToGrid(this)
-		layer.on Events.AnimationEnd, ->
-			currentState = layer.states.state
-			if currentState is 'default' # Reset the grid layers
-				for layerName, layer of gridLayers
-					layer.index = 1
-					layer.ignoreEvents = false
+# EVENTS
+for itemName, item of gridItems
+	item.containerLayer.on Events.Click, () ->
+		currentState = @states.state
+		if currentState is "default"  # Go to detail
+			goToDetail(@)
+		else if currentState is "detail" # Back to grid
+			backToGrid(@)
+	item.containerLayer.on Events.AnimationEnd, ->
+		currentState = @states.state
+		if currentState is "default" # Reset the grid layers
+			resetGrid()
+# 	item.containerLayer.on Events.DragMove, ->
+# 		print "Dragging!"
 
-goToDetail = (currentLayer, currentLayerName) ->
-	currentDetailLayer = currentLayer
-	currentLayer.index = 100
-	for layerName, layer of gridLayers
-		layer.ignoreEvents = true if layerName isnt currentLayer.name
-	currentLayer.backgroundColor = 'green'
-	currentLayer.states.switch('detail')
-	currentLayer.draggable.enabled = true
-	currentLayer.draggable.speedX = 0 # Not sure about this constraint
-	for layerName, detailLayer of detailLayers
+goToDetail = (containerLayer) ->
+	currentDetailLayer = containerLayer
+	containerLayer.index = 100
+	for itemName, item of gridItems
+		item.containerLayer.ignoreEvents = true if itemName isnt containerLayer.name
+	#containerLayer.backgroundColor = "green"
+	containerLayer.states.switch("detail")
+	containerLayer.subLayers[0].states.switch("detail") # Make image come along
+	containerLayer.draggable.enabled = true
+	containerLayer.draggable.speedX = 0 # Not sure about this constraint
+	for detailitemName, detailLayer of detailLayers
 		detailLayer.layer.states.next()
 		
-backToGrid = (currentLayer) ->
-	currentLayer.backgroundColor = COLOR_MAGENTA
-	currentLayer.states.switch('default')
-	currentLayer.draggable.enabled = false
-	for layerName, detailLayer of detailLayers
-		detailLayer.layer.states.switchInstant('default')
+backToGrid = (containerLayer) ->
+	containerLayer.backgroundColor = COLOR_MAGENTA
+	containerLayer.states.switch("default")
+	containerLayer.subLayers[0].states.switch("default") # Make image come along
+	containerLayer.draggable.enabled = false
+	for detailitemName, detailLayer of detailLayers
+		detailLayer.layer.states.switchInstant("default")
+
+resetGrid = () ->
+	for itemName, item of gridItems
+		item.containerLayer.index = 1
+		item.containerLayer.ignoreEvents = false
 
 headerLayer = new Layer
 	width: DEVICE_WIDTH
@@ -134,13 +152,14 @@ headerTitleLayer = new Layer
 	superLayer: headerLayer
 headerTitleLayer.image = "images/header.png" if SHOW_IMAGES
 
+# EVENT
 headerTitleLayer.on Events.Hold, ()->
-	for layerName, layer of gridLayers
-		if layer.states.state isnt 'parted'
-			layer.states.switch('parted')
+	for itemName, layer of gridItems
+		if layer.states.state isnt "parted"
+			layer.states.switch("parted")
 		else
-			layer.states.switch('default')
-			for layerName, layer of gridLayers
+			layer.states.switch("default")
+			for itemName, layer of gridItems
 				layer.ignoreEvents = false
 
 detailLayers = {
@@ -199,6 +218,7 @@ detailHeaderExtendRightLayer = new Layer
 	superLayer: detailLayers.Header.layer
 detailHeaderExtendRightLayer.image = "images/detail_header_extender_right.png" if SHOW_IMAGES
 
+# EVENT
 detailHeaderExtendRightLayer.on Events.Click, ->
 	backToGrid(currentDetailLayer)
 
