@@ -2,47 +2,18 @@
 # Zach Heineman, 2015
 
 # This needs to be loaded at the beginning...
-# -----------------------------------
-#  HAMMERJS - Integration by Koen Bok 
-# -----------------------------------
+# Hammer.js integration by Koen Bok
 
 HammerEvents =
-	
-	Tap: "tap"
-	DoubleTap: "doubletap"
 	Hold: "hold"
-	Touch: "touch"
-	Release: "release"
-	Gesture: "gesture"
 
-	Swipe: "swipe"
-	SwipeUp: "swipeup"
-	SwipeDown: "swipedown"
-	SwipeLeft: "swipeleft"
-	SwipeRight: "swiperight"
-	
-	Transform: "transform"
-	TransformStart: "transformstart"
-	TransformEnd: "transformend"
-
-	Rotate: "rotate"
-
-	Pinch: "pinch"
-	PinchIn: "pinchin"
-	PinchOut: "pinchout"
-
-# Add the Hammer events to the base Framer events
 window.Events = _.extend Events, HammerEvents
 
-# Patch the on method on layers to listen to Hammer events
 class HammerLayer extends Framer.Layer
-	
 	on: (eventName, f) ->
-		
 		if eventName in _.values(HammerEvents)
 			@ignoreEvents = false			
 			hammer = Hammer(@_element).on eventName, f
-		
 		else
 			super eventName, f
 
@@ -94,31 +65,34 @@ for row in [1..5]
 			xPart: xPart
 		layer.image = imagePath if SHOW_IMAGES
 		gridLayers[layerName] = layer
-
-for name, layer of gridLayers
-	layer.states.add
-		detail: 
-			x: 0
-			y: DETAIL_IMAGE_Y_POSITION
-			width: DEVICE_WIDTH
-			height: DETAIL_IMAGE_HEIGHT
-		parted:
-			x: xPart
-	layer.states.animationOptions =
-		curve: "spring(300,25,0)"
-	layer.on Events.Click, ->
-		currentState = this.states.state
-		currentLayerName = this.name
-		if currentState isnt 'detail' # Go to detail
-			goToDetail(this)
-		else # Back to grid
-			backToGrid(this)
-	layer.on Events.AnimationEnd, ->
-		currentState = this.states.state
-		if currentState isnt 'detail' # Reset the grid layers
-			for layerName, layer of gridLayers
-				layer.index = 1
-				layer.ignoreEvents = false
+		layer.states.add
+			detail: 
+				x: 0
+				y: DETAIL_IMAGE_Y_POSITION
+				width: DEVICE_WIDTH
+				height: DETAIL_IMAGE_HEIGHT
+			parted:
+				x: xPart
+			swipe:
+				x: -DEVICE_WIDTH
+				y: DETAIL_IMAGE_Y_POSITION
+				width: DEVICE_WIDTH
+				height: DETAIL_IMAGE_HEIGHT		
+		layer.states.animationOptions =
+			curve: "spring(300,25,0)"
+		layer.on Events.Click, () ->
+			currentState = this.states.state
+			currentLayerName = this.name
+			if currentState is 'default'  # Go to detail
+				goToDetail(this)
+			else if currentState is 'detail' # Back to grid
+				backToGrid(this)
+		layer.on Events.AnimationEnd, ->
+			currentState = layer.states.state
+			if currentState is 'default' # Reset the grid layers
+				for layerName, layer of gridLayers
+					layer.index = 1
+					layer.ignoreEvents = false
 
 goToDetail = (currentLayer, currentLayerName) ->
 	currentDetailLayer = currentLayer
@@ -164,12 +138,14 @@ headerTitleLayer = new Layer
 	superLayer: headerLayer
 headerTitleLayer.image = "images/header.png" if SHOW_IMAGES
 
-headerTitleLayer.on Events.Hold, ()=> 
+headerTitleLayer.on Events.Hold, ()->
 	for layerName, layer of gridLayers
 		if layer.states.state isnt 'parted'
 			layer.states.switch('parted')
 		else
 			layer.states.switch('default')
+			for layerName, layer of gridLayers
+				layer.ignoreEvents = false
 
 detailLayers = {
 	"Background": {
