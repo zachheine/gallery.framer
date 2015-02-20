@@ -17,7 +17,6 @@ class HammerLayer extends Framer.Layer
 		else
 			super eventName, f
 
-# Replace the default Layer with the HammerLayer
 window.Layer = HammerLayer
 
 # iPhone 6 Plus = 828
@@ -34,17 +33,21 @@ ORIGINAL_IMAGE_WIDTH = 282; ORIGINAL_IMAGE_HEIGHT = 206
 IMAGE_HEIGHT_RATIO = ORIGINAL_IMAGE_HEIGHT / ORIGINAL_IMAGE_WIDTH
 IMAGE_WIDTH = (DEVICE_WIDTH - (MARGIN * 2 + GUTTER)) / 2
 IMAGE_HEIGHT = IMAGE_WIDTH * IMAGE_HEIGHT_RATIO
-DETAIL_IMAGE_HEIGHT_RATIO = 428 / 640 # Original detail dimensions
+DETAIL_IMAGE_HEIGHT_RATIO = 428 / 640 # Original detail image dimensions
 DETAIL_IMAGE_HEIGHT = DEVICE_WIDTH * DETAIL_IMAGE_HEIGHT_RATIO
 DETAIL_IMAGE_Y_POSITION = (DEVICE_HEIGHT * .5) - (DETAIL_IMAGE_HEIGHT / 2)
+SLIDE_UP_SCALE = .91
+SLIDE_UP_POSITION = ((DETAIL_IMAGE_Y_POSITION + DEVICE_HEIGHT) * SLIDE_UP_SCALE) - DEVICE_HEIGHT
 COLOR_BLUE = "#40a6f1"; COLOR_MAGENTA = "#df0077"
 SHOW_IMAGES = true
 
 new BackgroundLayer backgroundColor: "#fff"
 
-currentDetailLayer = {}
+currentDetailLayer = {} # Store this in a global
+currentState = "default"
 gridItems = {}
 
+# Set up the grid
 for row in [1..5]
 	for column in ["A", "B"]
 		itemName = column + row
@@ -59,6 +62,8 @@ for row in [1..5]
 			height: IMAGE_HEIGHT
 			x: xPosition
 			y: yPosition
+			clip: true
+			backgroundColor: "transparent"
 			#backgroundColor: COLOR_MAGENTA
 			xPart: xPart
 		item.imageLayer = new Layer
@@ -68,6 +73,9 @@ for row in [1..5]
 			#backgroundColor: "orange"
 		gridItems[itemName] = item
 		item.imageLayer.image = imagePath if SHOW_IMAGES
+		item.containerLayer.draggable.enabled = true
+		item.containerLayer.draggable.speedX = 0
+		item.containerLayer.draggable.speedY = 0
 		item.containerLayer.addSubLayer(item.imageLayer)
 		item.containerLayer.states.add
 			detail: 
@@ -77,10 +85,15 @@ for row in [1..5]
 				height: DETAIL_IMAGE_HEIGHT
 			parted:
 				x: xPart
+			bottom_bar:
+				x: 0
+				y: SLIDE_UP_POSITION
 		item.imageLayer.states.add
 			detail:
 				width: DEVICE_WIDTH
 				height: DETAIL_IMAGE_HEIGHT
+			bottom_bar:
+				scale: SLIDE_UP_SCALE
 		item.containerLayer.states.animationOptions =
 			curve: "spring(300,25,0)"
 		item.imageLayer.states.animationOptions =
@@ -88,20 +101,54 @@ for row in [1..5]
 
 # EVENTS
 for itemName, item of gridItems
-	item.containerLayer.on Events.Click, () ->
-		currentState = @states.state
-		if currentState is "default"  # Go to detail
+	item.containerLayer.on Events.DragEnd, ->
+		if currentState is "default" # Go to detail
 			goToDetail(@)
-		else if currentState is "detail" # Back to grid
-			backToGrid(@)
+		else if currentState is "detail" or "bottom_bar"
+			if @.y > (DETAIL_IMAGE_Y_POSITION - 10)
+				backToGrid(@)
+			else
+				bringBottomBar(@)
 	item.containerLayer.on Events.AnimationEnd, ->
-		currentState = @states.state
 		if currentState is "default" # Reset the grid layers
 			resetGrid()
-# 	item.containerLayer.on Events.DragMove, ->
-# 		print "Dragging!"
+	item.containerLayer.on Events.DragStart, ->
+		@.hasGoneOffScreen = false
+	item.containerLayer.on Events.DragMove, ->
+		if currentState isnt "default" # Avoid DragMove events in the grid view
+			imageScale = mapRange(@.y, -DEVICE_HEIGHT, DETAIL_IMAGE_Y_POSITION, 0, 1)
+			backgroundOpacity = mapRange(@.y, DETAIL_IMAGE_Y_POSITION, DETAIL_IMAGE_Y_POSITION + DEVICE_HEIGHT * .3, 1, 0)
+			@.subLayers[0].scale = imageScale
+			yOffset = DETAIL_IMAGE_Y_POSITION - @.y
+			if yOffset > 0 # Dragging up
+				if 0 < yOffset < 90
+					if currentState isnt "bottom_bar" and @.hasGoneOffScreen isnt true
+						detailLayers.Header.layer.rotationX = DETAIL_IMAGE_Y_POSITION - @.y
+				else if yOffset > 90
+					@.hasGoneOffScreen = true
+					detailLayers.Header.layer.states.switchInstant("default")
+				detailLayers.Footer.layer.y = DEVICE_HEIGHT - 90 - (yOffset * 1.2)
+			else # Dragging down
+				if -90 < yOffset < 0
+					if currentState isnt "bottom_bar" and @.hasGoneOffScreen isnt true
+						detailLayers.Header.layer.rotationX = Math.abs(yOffset)
+				else if yOffset < -90
+					@.hasGoneOffScreen = true
+					detailLayers.Header.layer.states.switchInstant("default")
+					if currentState isnt "bottom_bar" and @.hasGoneOffScreen isnt true
+						detailIconCloseLayer.opacity = backgroundOpacity ^ 10
+				detailLayers.Footer.layer.rotationX = Math.abs(yOffset / 5)
+				detailLayers.Background.layer.opacity = backgroundOpacity
+
+mapRange = (value, low1, high1, low2, high2) ->
+	if value < low1
+		return low2
+	else if value > high1
+		return high2
+	else return low2 + (high2 - low2) * (value - low1) / (high1 - low1)
 
 goToDetail = (containerLayer) ->
+	currentState = "detail"
 	currentDetailLayer = containerLayer
 	containerLayer.index = 100
 	for itemName, item of gridItems
@@ -109,18 +156,30 @@ goToDetail = (containerLayer) ->
 	#containerLayer.backgroundColor = "green"
 	containerLayer.states.switch("detail")
 	containerLayer.subLayers[0].states.switch("detail") # Make image come along
-	containerLayer.draggable.enabled = true
-	containerLayer.draggable.speedX = 0 # Not sure about this constraint
+	containerLayer.draggable.speedX = 1 # Not sure about this constraint
+	containerLayer.draggable.speedY = 1
 	for detailitemName, detailLayer of detailLayers
-		detailLayer.layer.states.next()
-		
+		detailLayer.layer.states.switch("detail")
+
+bringBottomBar = (containerLayer) ->
+	currentState = "bottom_bar"
+	detailLayers.Header.layer.states.switch("default")
+	containerLayer.states.switch("bottom_bar")
+	containerLayer.subLayers[0].states.switch("bottom_bar")
+	detailLayers.Footer.layer.states.switch("bottom_bar")
+	detailIconCloseLayer.states.switch("bottom_bar")
+
 backToGrid = (containerLayer) ->
-	containerLayer.backgroundColor = COLOR_MAGENTA
+	currentState = "default"
+	#containerLayer.backgroundColor = COLOR_MAGENTA
 	containerLayer.states.switch("default")
 	containerLayer.subLayers[0].states.switch("default") # Make image come along
-	containerLayer.draggable.enabled = false
+	containerLayer.ignoreEvents = true
+	containerLayer.draggable.speedX = 0 # Not sure about this constraint
+	containerLayer.draggable.speedY = 0
 	for detailitemName, detailLayer of detailLayers
 		detailLayer.layer.states.switchInstant("default")
+	detailIconCloseLayer.states.switch("default")
 
 resetGrid = () ->
 	for itemName, item of gridItems
@@ -180,7 +239,7 @@ for name, layer of detailLayers
 		opacity: 0
 	layer.layer.states.add
 		detail:
-			opacity: 1
+			opacity: .96
 	layer.layer.states.animationOptions =
 		curve: "bezier-curve"
 		curveOptions: "ease-out"
@@ -218,8 +277,22 @@ detailHeaderExtendRightLayer = new Layer
 	superLayer: detailLayers.Header.layer
 detailHeaderExtendRightLayer.image = "images/detail_header_extender_right.png" if SHOW_IMAGES
 
-# EVENT
+detailIconCloseLayer = new Layer
+	width: 120
+	height: 120
+	x: DEVICE_WIDTH - 120
+	image: "images/icon_close.png"
+	opacity: 0
+	
+detailIconCloseLayer.states.add
+	bottom_bar:
+		opacity: 1
+
+# EVENTS
 detailHeaderExtendRightLayer.on Events.Click, ->
+	backToGrid(currentDetailLayer)
+
+detailIconCloseLayer.on Events.Click, ->
 	backToGrid(currentDetailLayer)
 
 detailHeaderTitleLayer = new Layer
@@ -231,12 +304,11 @@ detailHeaderTitleLayer.image = "images/detail_header.png" if SHOW_IMAGES
 
 detailLayers.Footer.layer = new Layer
 	width: DEVICE_WIDTH
-	height: FOOTER
+	height: DEVICE_HEIGHT # 306
 	y: DEVICE_HEIGHT - FOOTER
-	backgroundColor: COLOR_BLUE
+	backgroundColor: "#333"
 	#image: 
 	index: 10
-detailLayers.Footer.layer.image = "images/detail_footer.png" if SHOW_IMAGES
 
 detailLayers.Footer.layer.originY = 1
 detailLayers.Footer.layer.rotationX = 90
@@ -244,6 +316,8 @@ detailLayers.Footer.layer.rotationX = 90
 detailLayers.Footer.layer.states.add
 	detail:
 		rotationX: 0
+	bottom_bar:
+		y: DEVICE_HEIGHT - 300
 
 detailLayers.Footer.layer.states.animationOptions =
 	curve: "bezier-curve"
@@ -251,6 +325,7 @@ detailLayers.Footer.layer.states.animationOptions =
 	time: .2
 
 CENTER_ICON = (DEVICE_WIDTH * .5) - 30
+CENTER_SELECT = (DEVICE_WIDTH * .5) - 80
 # UNIT is 86 WHEN DEVICE_WIDTH is 640
 UNIT = (DEVICE_WIDTH - (DEVICE_WIDTH * .06)) / 7
 
@@ -263,9 +338,41 @@ detailFooterIcons = [
 
 for icon in detailFooterIcons
 	icon.layer = new Layer
+		name: icon.name
 		width: 60
 		height: 60 
 		x: icon.x
 		y: 15
 		superLayer: detailLayers.Footer.layer
 	icon.layer.image = "images/icons/" + icon.img if SHOW_IMAGES
+	icon.layer.on Events.Click, ->
+		animateActionSelector(@)
+		bringBottomBar(currentDetailLayer)
+
+animateActionSelector = (icon) ->
+	if currentState is "detail"
+		selectedActionLayer.states.switchInstant(icon.name)
+	else 
+		selectedActionLayer.states.switch(icon.name)
+
+selectedActionLayer = new Layer
+	width: 160
+	height: 6
+	y: 90
+	backgroundColor: "#EAEAEA"
+	superLayer: detailLayers.Footer.layer
+
+selectedActionLayer.states.add
+	Plus1:
+		x: CENTER_SELECT - UNIT * 3
+	Comment:
+		x: CENTER_SELECT - UNIT
+	Add:
+		x: CENTER_SELECT + UNIT
+	Share:
+		x: CENTER_SELECT + UNIT * 3
+
+selectedActionLayer.states.animationOptions =
+	curve: "bezier-curve"
+	curveOptions: "ease-out"
+	time: .2
