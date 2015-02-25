@@ -306,8 +306,8 @@ detailLayers.Footer.layer = new Layer
 	width: DEVICE_WIDTH
 	height: DEVICE_HEIGHT # 306
 	y: DEVICE_HEIGHT - FOOTER
-	backgroundColor: "#333"
-	#image: 
+# 	backgroundColor: "#333"
+	backgroundColor: COLOR_MAGENTA
 	index: 10
 
 detailLayers.Footer.layer.originY = 1
@@ -352,8 +352,10 @@ for icon in detailFooterIcons
 animateActionSelector = (icon) ->
 	if currentState is "detail"
 		selectedActionLayer.states.switchInstant(icon.name)
+		footerActionItemsLayer.states.switchInstant(icon.name)
 	else 
 		selectedActionLayer.states.switch(icon.name)
+		footerActionItemsLayer.states.switch(icon.name)
 
 selectedActionLayer = new Layer
 	width: 160
@@ -376,3 +378,53 @@ selectedActionLayer.states.animationOptions =
 	curve: "bezier-curve"
 	curveOptions: "ease-out"
 	time: .2
+
+footerActionItemsLayer = new Layer
+	width: DEVICE_WIDTH * 4
+	height: 210
+	x: 0
+	y: 96
+	backgroundColor: "transparent"
+# 	backgroundColor: COLOR_BLUE
+	superLayer: detailLayers.Footer.layer
+
+footerActionItemsLayer.states.add
+	Plus1:
+		x: 0
+	Comment:
+		x: -DEVICE_WIDTH
+	Add:
+		x: -DEVICE_WIDTH * 2
+	Share:
+		x: -DEVICE_WIDTH * 3
+
+footerActionItemsLayer.states.animationOptions =
+	curve: "spring(300,25,0)"
+
+ACTION_ITEM_OFFSET = (DEVICE_WIDTH - 640) / 2
+
+footerActionItems = [
+	{ name: "Plus1", img: "action_plus-one.png", x: ACTION_ITEM_OFFSET }
+	{ name: "Comment", img: "action_comment.png", x: DEVICE_WIDTH + ACTION_ITEM_OFFSET }
+	{ name: "Add", img: "action_add.png", x: (DEVICE_WIDTH * 2) + ACTION_ITEM_OFFSET }
+	{ name: "Share", img: "action_share.png", x: (DEVICE_WIDTH * 3) + ACTION_ITEM_OFFSET }
+]
+
+for item, i in footerActionItems
+# 	xPosition =  i * DEVICE_WIDTH
+# 	print parseInt(xPosition)
+	item.layer = new Layer
+		width: 640
+		height: 210
+		x: item.x
+		y: 0
+		superLayer: footerActionItemsLayer
+# 		backgroundColor: COLOR_MAGENTA
+	item.layer.image = "images/actions/" + item.img if SHOW_IMAGES
+
+# item.layer = new Layer
+# 	width: DEVICE_WIDTH
+# 	height: 210
+# 	x: 10
+# 	superLayer: footerActionItemsLayer
+# 	backgroundColor: "green"
