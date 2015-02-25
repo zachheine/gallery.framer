@@ -19,6 +19,12 @@ class HammerLayer extends Framer.Layer
 
 window.Layer = HammerLayer
 
+# Set up some logging
+
+keen = new Keen(
+	projectId: '54ed8c642fd4b14d3bc9a823'
+	writeKey: 'c4aaeb6bf7c70d14951ecc8148d42ed8a5fe3ed1cef64c039ade9c57d56da2fb87b4b63e0c7ebac6d15168085f7b7d4a13b14a7cc974b2edfa825b2c1ea081af76e8cc7f342dcdef3485a6aca4518d51164f9cb83c36b4627fd225b80f8f8a2fc1446b7421638242457aec071ff12ce0')
+
 # iPhone 6 Plus = 828
 # iPhone 6 = 750
 # iPhone 5/4s = 640
@@ -106,7 +112,7 @@ for itemName, item of gridItems
 			goToDetail(@)
 		else if currentState is "detail" or "bottom_bar"
 			if @.y > (DETAIL_IMAGE_Y_POSITION - 10)
-				backToGrid(@)
+				backToGrid(@, "drag", currentState)
 			else
 				bringBottomBar(@)
 	item.containerLayer.on Events.AnimationEnd, ->
@@ -160,6 +166,7 @@ goToDetail = (containerLayer) ->
 	containerLayer.draggable.speedY = 1
 	for detailitemName, detailLayer of detailLayers
 		detailLayer.layer.states.switch("detail")
+	log(containerLayer.name, "default", "goToDetail")
 
 bringBottomBar = (containerLayer) ->
 	currentState = "bottom_bar"
@@ -169,7 +176,7 @@ bringBottomBar = (containerLayer) ->
 	detailLayers.Footer.layer.states.switch("bottom_bar")
 	detailIconCloseLayer.states.switch("bottom_bar")
 
-backToGrid = (containerLayer) ->
+backToGrid = (containerLayer, sender, oldState) ->
 	currentState = "default"
 	#containerLayer.backgroundColor = COLOR_MAGENTA
 	containerLayer.states.switch("default")
@@ -180,11 +187,44 @@ backToGrid = (containerLayer) ->
 	for detailitemName, detailLayer of detailLayers
 		detailLayer.layer.states.switchInstant("default")
 	detailIconCloseLayer.states.switch("default")
+	log(sender, oldState, "backToGrid")
 
 resetGrid = () ->
 	for itemName, item of gridItems
 		item.containerLayer.index = 1
 		item.containerLayer.ignoreEvents = false
+
+log = (name, state, action) ->
+	keenEvent = {
+		click: name
+		state: state
+		action: action
+		keen: { "addons" : [
+				{
+					"name" : "keen:ip_to_geo"
+					"input" : {
+						"ip" : "ip_address"
+					}
+					"output" : "ip_geo_info"
+				}, {
+					"name" : "keen:ua_parser"
+					"input" : {
+						"ua_string" : "user_agent"
+					}
+					"output" : "parsed_user_agent"
+				}
+			]
+		},
+		"ip_address" : "${keen.ip}"
+		"user_agent" : "${keen.user_agent}"
+	}
+	keen.addEvent("clicks", keenEvent)
+	keenEventSimple = {
+		click: name
+		state: state
+		action: action
+	}
+	keen.addEvent("clicks-simple", keenEventSimple)
 
 headerLayer = new Layer
 	width: DEVICE_WIDTH
@@ -290,10 +330,10 @@ detailIconCloseLayer.states.add
 
 # EVENTS
 detailHeaderExtendRightLayer.on Events.Click, ->
-	backToGrid(currentDetailLayer)
+	backToGrid(currentDetailLayer, "x-bar", currentState)
 
 detailIconCloseLayer.on Events.Click, ->
-	backToGrid(currentDetailLayer)
+	backToGrid(currentDetailLayer, "x-bg", currentState)
 
 detailHeaderTitleLayer = new Layer
 	width: 480
@@ -306,8 +346,7 @@ detailLayers.Footer.layer = new Layer
 	width: DEVICE_WIDTH
 	height: DEVICE_HEIGHT # 306
 	y: DEVICE_HEIGHT - FOOTER
-# 	backgroundColor: "#333"
-	backgroundColor: COLOR_MAGENTA
+	backgroundColor: "#333"
 	index: 10
 
 detailLayers.Footer.layer.originY = 1
@@ -385,7 +424,6 @@ footerActionItemsLayer = new Layer
 	x: 0
 	y: 96
 	backgroundColor: "transparent"
-# 	backgroundColor: COLOR_BLUE
 	superLayer: detailLayers.Footer.layer
 
 footerActionItemsLayer.states.add
@@ -411,20 +449,10 @@ footerActionItems = [
 ]
 
 for item, i in footerActionItems
-# 	xPosition =  i * DEVICE_WIDTH
-# 	print parseInt(xPosition)
 	item.layer = new Layer
 		width: 640
 		height: 210
 		x: item.x
 		y: 0
 		superLayer: footerActionItemsLayer
-# 		backgroundColor: COLOR_MAGENTA
 	item.layer.image = "images/actions/" + item.img if SHOW_IMAGES
-
-# item.layer = new Layer
-# 	width: DEVICE_WIDTH
-# 	height: 210
-# 	x: 10
-# 	superLayer: footerActionItemsLayer
-# 	backgroundColor: "green"
