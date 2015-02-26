@@ -1,7 +1,11 @@
 # UX Engineer, Design - Prototyping Exercise
 # Zach Heineman, 2015
 
+hammer = require "hammer"
+hammer.init()
+
 # Set up some logging
+
 keen = new Keen(
 	projectId: '54ed8c642fd4b14d3bc9a823'
 	writeKey: 'c4aaeb6bf7c70d14951ecc8148d42ed8a5fe3ed1cef64c039ade9c57d56da2fb87b4b63e0c7ebac6d15168085f7b7d4a13b14a7cc974b2edfa825b2c1ea081af76e8cc7f342dcdef3485a6aca4518d51164f9cb83c36b4627fd225b80f8f8a2fc1446b7421638242457aec071ff12ce0')
@@ -269,7 +273,7 @@ for name, layer of detailLayers
 detailLayers.Header.layer = new Layer
 	width: DEVICE_WIDTH
 	height: HEADER
-# 	backgroundColor: COLOR_BLUE
+	backgroundColor: COLOR_BLUE
 	index: 10
 
 detailLayers.Header.layer.originY = 0
