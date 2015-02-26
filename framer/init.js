@@ -79,6 +79,8 @@ function showHomeScreenAlert() {
 	showAlert(html)
 }
 
+
+
 function loadProject() {
 	xhr = new window.XMLHttpRequest()
 	xhr.open("GET", "app.coffee", true)
