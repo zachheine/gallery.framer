@@ -31,3 +31,5 @@ framer/.*.hash
 
 *.psd
 images/_*
+
+framer/framer.modules.js

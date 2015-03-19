@@ -1,36 +1,15 @@
 # UX Engineer, Design - Prototyping Exercise
 # Zach Heineman, 2015
 
-# Next version of Framer Studio (supposedly) will allow modules for better organization
-
 # Set up some logging
 keen = new Keen(
 	projectId: '54ed8c642fd4b14d3bc9a823'
 	writeKey: 'c4aaeb6bf7c70d14951ecc8148d42ed8a5fe3ed1cef64c039ade9c57d56da2fb87b4b63e0c7ebac6d15168085f7b7d4a13b14a7cc974b2edfa825b2c1ea081af76e8cc7f342dcdef3485a6aca4518d51164f9cb83c36b4627fd225b80f8f8a2fc1446b7421638242457aec071ff12ce0')
 
-# iPhone 6 Plus = 828
-# iPhone 6 = 750
-# iPhone 5/4s = 640
-# Nexus 5 = 360 (x2)
-
 c = require "constants"
+layout = require "layout"
 
-if c.DEVICE_WIDTH < 640 # Hack for Nexus 5 (and hopefully other Androids)
-	c.DEVICE_WIDTH = c.DEVICE_WIDTH * 2; c.DEVICE_HEIGHT = c.DEVICE_HEIGHT * 2
-HEADER = 120; MARGIN = 30; GUTTER = 16; FOOTER = 90
-ORIGINAL_IMAGE_WIDTH = 282; ORIGINAL_IMAGE_HEIGHT = 206
-IMAGE_HEIGHT_RATIO = ORIGINAL_IMAGE_HEIGHT / ORIGINAL_IMAGE_WIDTH
-IMAGE_WIDTH = (c.DEVICE_WIDTH - (MARGIN * 2 + GUTTER)) / 2
-IMAGE_HEIGHT = IMAGE_WIDTH * IMAGE_HEIGHT_RATIO
-DETAIL_IMAGE_HEIGHT_RATIO = 428 / 640 # Original detail image dimensions
-DETAIL_IMAGE_HEIGHT = c.DEVICE_WIDTH * DETAIL_IMAGE_HEIGHT_RATIO
-DETAIL_IMAGE_Y_POSITION = (c.DEVICE_HEIGHT * .5) - (DETAIL_IMAGE_HEIGHT / 2)
-SLIDE_UP_SCALE = .91
-SLIDE_UP_POSITION = ((DETAIL_IMAGE_Y_POSITION + c.DEVICE_HEIGHT) * SLIDE_UP_SCALE) - c.DEVICE_HEIGHT
-COLOR_BLUE = "#40a6f1"; COLOR_MAGENTA = "#df0077"
 SHOW_IMAGES = true
-
-new BackgroundLayer backgroundColor: "#fff"
 
 currentDetailLayer = {} # Store this in a global
 currentState = "default"
@@ -40,15 +19,15 @@ gridItems = {}
 for row in [1..5]
 	for column in ["A", "B"]
 		itemName = column + row
-		xPosition = if column is "A" then MARGIN else MARGIN + IMAGE_WIDTH + GUTTER
-		yPosition = (HEADER + MARGIN) + ((row - 1) * (IMAGE_HEIGHT + GUTTER))
+		xPosition = if column is "A" then c.MARGIN else c.MARGIN + c.IMAGE_WIDTH + c.GUTTER
+		yPosition = (c.HEADER + c.MARGIN) + ((row - 1) * (c.IMAGE_HEIGHT + c.GUTTER))
 		imagePath = "images/grid/" + itemName + ".jpg"
-		xPart = if column == "A" then xPosition - IMAGE_WIDTH else xPosition + IMAGE_WIDTH
+		xPart = if column == "A" then xPosition - c.IMAGE_WIDTH else xPosition + c.IMAGE_WIDTH
 		item = {}
 		item.containerLayer = new Layer
 			name: itemName
-			width: IMAGE_WIDTH
-			height: IMAGE_HEIGHT
+			width: c.IMAGE_WIDTH
+			height: c.IMAGE_HEIGHT
 			x: xPosition
 			y: yPosition
 			clip: true
@@ -57,8 +36,8 @@ for row in [1..5]
 			xPart: xPart
 		item.imageLayer = new Layer
 			name: itemName
-			width: IMAGE_WIDTH
-			height: IMAGE_HEIGHT
+			width: c.IMAGE_WIDTH
+			height: c.IMAGE_HEIGHT
 			#backgroundColor: "orange"
 		gridItems[itemName] = item
 		item.imageLayer.image = imagePath if SHOW_IMAGES
@@ -69,20 +48,20 @@ for row in [1..5]
 		item.containerLayer.states.add
 			detail: 
 				x: 0
-				y: DETAIL_IMAGE_Y_POSITION
+				y: c.DETAIL_IMAGE_Y_POSITION
 				width: c.DEVICE_WIDTH
-				height: DETAIL_IMAGE_HEIGHT
+				height: c.DETAIL_IMAGE_HEIGHT
 			parted:
 				x: xPart
 			bottom_bar:
 				x: 0
-				y: SLIDE_UP_POSITION
+				y: c.SLIDE_UP_POSITION
 		item.imageLayer.states.add
 			detail:
 				width: c.DEVICE_WIDTH
-				height: DETAIL_IMAGE_HEIGHT
+				height: c.DETAIL_IMAGE_HEIGHT
 			bottom_bar:
-				scale: SLIDE_UP_SCALE
+				scale: c.SLIDE_UP_SCALE
 		item.containerLayer.states.animationOptions =
 			curve: "spring(300,25,0)"
 		item.imageLayer.states.animationOptions =
@@ -94,7 +73,7 @@ for itemName, item of gridItems
 		if currentState is "default" # Go to detail
 			goToDetail(@)
 		else if currentState is "detail" or "bottom_bar"
-			if @.y > (DETAIL_IMAGE_Y_POSITION - 10)
+			if @.y > (c.DETAIL_IMAGE_Y_POSITION - 10)
 				backToGrid(@, "drag", currentState)
 			else
 				bringBottomBar(@)
@@ -105,14 +84,14 @@ for itemName, item of gridItems
 		@.hasGoneOffScreen = false
 	item.containerLayer.on Events.DragMove, ->
 		if currentState isnt "default" # Avoid DragMove events in the grid view
-			imageScale = mapRange(@.y, -c.DEVICE_HEIGHT, DETAIL_IMAGE_Y_POSITION, 0, 1)
-			backgroundOpacity = mapRange(@.y, DETAIL_IMAGE_Y_POSITION, DETAIL_IMAGE_Y_POSITION + c.DEVICE_HEIGHT * .3, 1, 0)
+			imageScale = mapRange(@.y, -c.DEVICE_HEIGHT, c.DETAIL_IMAGE_Y_POSITION, 0, 1)
+			backgroundOpacity = mapRange(@.y, c.DETAIL_IMAGE_Y_POSITION, c.DETAIL_IMAGE_Y_POSITION + c.DEVICE_HEIGHT * .3, 1, 0)
 			@.subLayers[0].scale = imageScale
-			yOffset = DETAIL_IMAGE_Y_POSITION - @.y
+			yOffset = c.DETAIL_IMAGE_Y_POSITION - @.y
 			if yOffset > 0 # Dragging up
 				if 0 < yOffset < 90
 					if currentState isnt "bottom_bar" and @.hasGoneOffScreen isnt true
-						detailLayers.Header.layer.rotationX = DETAIL_IMAGE_Y_POSITION - @.y
+						detailLayers.Header.layer.rotationX = c.DETAIL_IMAGE_Y_POSITION - @.y
 				else if yOffset > 90
 					@.hasGoneOffScreen = true
 					detailLayers.Header.layer.states.switchInstant("default")
@@ -211,26 +190,26 @@ log = (name, state, action) ->
 
 headerLayer = new Layer
 	width: c.DEVICE_WIDTH
-	height: HEADER
+	height: c.HEADER
 	
 headerExtendLeftLayer = new Layer
 	width: 320
 	x: 0
-	height: HEADER
+	height: c.HEADER
 	image: "images/header_extender.png"
 	superLayer: headerLayer
 
 headerExtendRightLayer = new Layer
 	width: 320
 	x: c.DEVICE_WIDTH - 320
-	height: HEADER
+	height: c.HEADER
 	image: "images/header_extender.png"
 	superLayer: headerLayer
 
 headerTitleLayer = new Layer
 	width: 640
 	x: (c.DEVICE_WIDTH * .5) - 320
-	height: HEADER
+	height: c.HEADER
 	superLayer: headerLayer
 headerTitleLayer.image = "images/header.png" if SHOW_IMAGES
 
@@ -270,8 +249,9 @@ for name, layer of detailLayers
 
 detailLayers.Header.layer = new Layer
 	width: c.DEVICE_WIDTH
-	height: HEADER
-	index: 10
+	height: c.HEADER
+	index: 100
+	background: "green"
 
 detailLayers.Header.layer.originY = 0
 detailLayers.Header.layer.rotationX = 90
@@ -288,14 +268,14 @@ detailLayers.Header.layer.states.animationOptions =
 detailHeaderExtendLeftLayer = new Layer
 	width: 320
 	x: 0
-	height: HEADER
+	height: c.HEADER
 	image: "images/detail_header_extender_left.png"
 	superLayer: detailLayers.Header.layer
 
 detailHeaderExtendRightLayer = new Layer
 	width: 320
 	x: c.DEVICE_WIDTH - 320
-	height: HEADER
+	height: c.HEADER
 	superLayer: detailLayers.Header.layer
 detailHeaderExtendRightLayer.image = "images/detail_header_extender_right.png" if SHOW_IMAGES
 
@@ -320,16 +300,16 @@ detailIconCloseLayer.on Events.Click, ->
 detailHeaderTitleLayer = new Layer
 	width: 480
 	x: (c.DEVICE_WIDTH * .5) - 240
-	height: HEADER
+	height: c.HEADER
 	superLayer: detailLayers.Header.layer
 detailHeaderTitleLayer.image = "images/detail_header.png" if SHOW_IMAGES
 
 detailLayers.Footer.layer = new Layer
 	width: c.DEVICE_WIDTH
 	height: c.DEVICE_HEIGHT # 306
-	y: c.DEVICE_HEIGHT - FOOTER
+	y: c.DEVICE_HEIGHT - c.FOOTER
 	backgroundColor: "#333"
-	index: 10
+	index: 100
 
 detailLayers.Footer.layer.originY = 1
 detailLayers.Footer.layer.rotationX = 90
