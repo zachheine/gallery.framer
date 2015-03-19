@@ -79,19 +79,8 @@ function showHomeScreenAlert() {
 	showAlert(html)
 }
 
-
-
 function loadProject() {
-	xhr = new window.XMLHttpRequest()
-	xhr.open("GET", "app.coffee", true)
-	
-	xhr.onreadystatechange = function() {
-		if (xhr.readyState == 4 && xhr.responseText != "") {
-			CoffeeScript.eval(xhr.responseText)
-		}
-	}
-	
-	xhr.send(null)	
+	CoffeeScript.load("app.coffee")
 }
 
 function setDefaultPageTitle() {
